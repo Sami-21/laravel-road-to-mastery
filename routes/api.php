@@ -1,8 +1,10 @@
 <?php
 
-use App\Events\Chat;
+
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,26 +19,26 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    return Auth::user();
 });
 
+Route::get('/', function (Request $request) {
+    return Auth::user();
+});
+
+
+//Chat routes
+Route::get('/chat-rooms', [
+    ChatController::class,
+    'getRooms'
+]);
+Route::get('/chat-room/{roomId}/messages', [ChatController::class, 'getMessages']);
+Route::get('/chat-room/{roomId}', [ChatController::class, 'getRoom']);
+Route::post('/chat-room/{roomId}', [ChatController::class, 'newMessage']);
+
 Route::controller(AuthController::class)->group(function () {
-    Route::post('login', 'login');
+    Route::post('login', ['as' => 'login', 'uses' =>  'login']);
     Route::post('register', 'register');
     Route::post('logout', 'logout');
     Route::post('refresh', 'refresh');
 });
-
-Route::post('/send', function (Request $request) {
-    $user = $request->user;
-    $message = $request->message;
-    broadcast(new Chat($user, $message));
-    return ['test'];
-});
-
-// Route::get('/private-event', function () {
-//     $user = "sami";
-//     $message = "test message";
-//     broadcast(new PrivateChat($user, $message));
-//     return 'done';
-// });
